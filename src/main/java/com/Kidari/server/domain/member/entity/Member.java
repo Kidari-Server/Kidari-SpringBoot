@@ -1,5 +1,7 @@
 package com.Kidari.server.domain.member.entity;
 
+import com.Kidari.server.common.response.exception.ErrorCode;
+import com.Kidari.server.common.response.exception.MemberException;
 import com.Kidari.server.domain.item.entity.Item;
 import com.Kidari.server.domain.univ.entity.Univ;
 import jakarta.persistence.*;
@@ -63,19 +65,18 @@ public class Member {
     @JoinColumn(name = "itemId")
     private Item item; // 아이템 고유 번호
 
-    public boolean useSnowflake(){
+    public void useSnowflake() throws MemberException {
         if (this.snowflake <= 0) { // 0 이하이면 사용 불가
-            return false;
+            throw new MemberException(ErrorCode.SNOWFLAKE_CANNOT_BE_USED);
         }
         this.snowflake--;
-        return true;
     }
 
     public void updateSnowflake(Long totalCommits) {
         this.snowflake = totalCommits;
     }
 
-    public void updateSnowmanHeight(Long newHeight) {
+    public void updateSnowmanHeight(Long newHeight) { // 새 높이로 업데이트
         this.snowmanHeight = max(newHeight, 1L);
     }
 
