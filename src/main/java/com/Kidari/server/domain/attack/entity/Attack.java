@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Builder
@@ -25,7 +26,7 @@ public class Attack {
     private LocalDateTime time; // 공격 시간
 
     @Column(nullable = false)
-    private Long attackerId; // 공격자 고유 아이디
+    private UUID attackerUid; // 공격자 고유 아이디 - UUID로 변경됨
 
     @Column(nullable = false)
     private Boolean isChecked; // 단일 공격값 조회 여부
@@ -35,7 +36,7 @@ public class Attack {
     @JoinColumn(name = "memberId")
     private Member member; // 공격 받은 사람 고유 번호
 
-    public void checkAttack(){
+    public void checked(){
         this.isChecked = true;
     }
 }
