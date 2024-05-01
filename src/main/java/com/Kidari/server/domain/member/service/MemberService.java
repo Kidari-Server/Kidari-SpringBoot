@@ -15,6 +15,7 @@ import com.Kidari.server.domain.univ.entity.Univ;
 import com.Kidari.server.domain.univ.entity.UnivRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +44,7 @@ public class MemberService {
         Member member = authUtils.getMember();
         List<Member> searchedMembers = memberRepository.findByLoginStartingWith(nickname);
         if (searchedMembers == null)
-            return ApiResponse.failure(ErrorCode.MEMBER_NOT_FOUND); // ErrorCode 추가 필요
+            return ApiResponse.success(HttpStatus.NO_CONTENT); // 검색 결과 없음
         List<MemberSearchResDto> resDtos = searchedMembers.stream()
                 .map(otherMember -> new MemberSearchResDto(otherMember, followService.followStatus(member, otherMember.getUid())))
                 .toList();
