@@ -2,6 +2,7 @@ package com.Kidari.server.domain.follow.service;
 
 import com.Kidari.server.common.response.ApiResponse;
 import com.Kidari.server.common.response.exception.ErrorCode;
+import com.Kidari.server.common.response.exception.FollowException;
 import com.Kidari.server.common.validation.ValidationService;
 import com.Kidari.server.config.auth.AuthUtils;
 import com.Kidari.server.domain.follow.dto.FollowPatchReqDto;
@@ -32,25 +33,14 @@ public class FollowService {
             return ApiResponse.failure(ErrorCode.FOLLOW_BAD_REQUEST);
 
         // member와 다른 멤버의 uid로 Follow 가져오기
-        Follow follow = getFollowRelation(member, otherUid);
-        if (follow == null) {
-            createFollow(member, otherUid); //새로운 팔로우 생성 및 저장
-            return ApiResponse.success(new FollowPatchResDto(followPatchReqDto.nickname(), true));
-        } else {
+        try {
+            Follow follow = getFollowRelation(member, otherUid);
             followRepository.delete(follow); // 해당 팔로우 가져와 삭제
             return ApiResponse.success(new FollowPatchResDto(followPatchReqDto.nickname(), false));
+        } catch (FollowException e){
+            createFollow(member, otherUid); //새로운 팔로우 생성 및 저장
+            return ApiResponse.success(new FollowPatchResDto(followPatchReqDto.nickname(), true));
         }
-    }
-    
-    // 내가 Follow하고 있는 사용자 리스트 반환
-    public List<Member> getBuddyList() {
-        Member member = authUtils.getMember();
-        List<Follow> followList = followRepository.findAllByMember(member); // 내 Follow 리스트
-        // 내 친구(Member) 리스트
-        List<Member> buddyList = followList.stream()
-                .map(follow -> validationService.valMember(follow.getBuddyUid()))
-                .toList();
-        return buddyList; // 비어있을 수 있음
     }
 
     // Follow 생성
@@ -62,13 +52,20 @@ public class FollowService {
         followRepository.save(follow);
     }
 
+    // TODO: 추후 NPE 확인 필요
     @Transactional(readOnly = true)
     public Follow getFollowRelation(Member member, UUID otherMemberUid){ // 반환값이 NULL일 수 있음
-        return followRepository.findByMemberAndBuddyId(member, otherMemberUid);
+        return followRepository.findByMemberAndBuddyId(member, otherMemberUid)
+                .orElseThrow(() -> new FollowException(ErrorCode.FOLLOW_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
     public boolean followStatus(Member member, UUID otherMemberUid) {
         return followRepository.existsByMemberAndBuddyUid(member, otherMemberUid);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Follow> findAllFollowByMember(Member member) {
+        return followRepository.findAllByMember(member);
     }
 }
