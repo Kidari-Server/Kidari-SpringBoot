@@ -1,7 +1,6 @@
 package com.Kidari.server.domain.member.service;
 
 import com.Kidari.server.common.response.ApiResponse;
-import com.Kidari.server.common.response.exception.ErrorCode;
 import com.Kidari.server.common.response.exception.MemberException;
 import com.Kidari.server.common.validation.ValidationService;
 import com.Kidari.server.config.auth.AuthUtils;
@@ -59,12 +58,12 @@ public class MemberService {
         return ApiResponse.success(new MemberInfoResDto(otherMember, followStatus)); // 팔로우 상태와 함께 보냄
     }
 
-    // 내 눈사람 키 키우기. 눈송이 사용에 실패한 경우 MemberException
+    // 내 눈사람 키 키우기
     public ApiResponse<?> growSnowman() {
         try {
             Member member = authUtils.getMember();
             // member.updateSnowflake(); // TODO: 추후 변경 필요
-            member.useSnowflake();
+            member.useSnowflake(); // 눈송이 사용에 실패한 경우 MemberException
             refreshHeight(member, 1L);
             return ApiResponse.success();
         } catch (MemberException e) {
