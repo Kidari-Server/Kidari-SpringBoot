@@ -4,6 +4,7 @@ import com.Kidari.server.common.response.ApiResponse;
 import com.Kidari.server.common.response.exception.MemberException;
 import com.Kidari.server.common.validation.ValidationService;
 import com.Kidari.server.config.auth.AuthUtils;
+import com.Kidari.server.domain.follow.entity.Follow;
 import com.Kidari.server.domain.follow.service.FollowService;
 import com.Kidari.server.domain.member.dto.MemberHomeResDto;
 import com.Kidari.server.domain.member.dto.MemberInfoResDto;
@@ -95,5 +96,16 @@ public class MemberService {
         // member.updateSnowflake(1L); // TODO: 추후 변경 필요
         member.useSnowflake();
         return memberRepository.save(member);
+    }
+
+    // 내 친구 리스트 반환
+    public List<Member> getBuddyList() {
+        Member member = authUtils.getMember();
+        List<Follow> followList = followService.findAllFollowByMember(member); // 내 Follow 리스트
+        // 내 친구(Member) 리스트
+        List<Member> buddyList = followList.stream()
+                .map(follow -> validationService.valMember(follow.getBuddyUid()))
+                .toList();
+        return buddyList; // 비어있을 수 있음
     }
 }

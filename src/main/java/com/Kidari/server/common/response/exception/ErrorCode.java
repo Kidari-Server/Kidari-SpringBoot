@@ -31,10 +31,11 @@ public enum ErrorCode {
 
     // Follow
     FOLLOW_NOT_FOUND(404, "팔로우가 존재하지 않습니다"),
-    FOLLOW_BAD_REQUEST(404, "팔로우가 존재하지 않습니다"),
+    FOLLOW_BAD_REQUEST(400, "본인을 팔로우할 수 없습니다."),
 
     // Item
     ITEM_NOT_FOUND(404, "아이템이 존재하지 않습니다."),
+    ITEM_BAD_REQUEST(404, "아이템 snow/hat/deco의 번호가 잘못되었습니다."),
 
     // Univ
     UNIV_NOT_FOUND(404, "존재하지 않는 대학입니다."),
