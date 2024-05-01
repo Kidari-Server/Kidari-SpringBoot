@@ -10,11 +10,9 @@ import com.Kidari.server.domain.follow.entity.Follow;
 import com.Kidari.server.domain.follow.entity.FollowRepository;
 import com.Kidari.server.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,15 +42,15 @@ public class FollowService {
         }
     }
     
-    // 내가 Follow하고 있는 사용자들 불러옴
-    public ApiResponse<?> getBuddyList() {
+    // 내가 Follow하고 있는 사용자 리스트 반환
+    public List<Member> getBuddyList() {
         Member member = authUtils.getMember();
         List<Follow> followList = followRepository.findAllByMember(member); // 내 Follow 리스트
         // 내 친구(Member) 리스트
         List<Member> buddyList = followList.stream()
                 .map(follow -> validationService.valMember(follow.getBuddyUid()))
                 .toList();
-        return buddyList.isEmpty() ? ApiResponse.success(HttpStatus.NO_CONTENT) : ApiResponse.success(buddyList);
+        return buddyList; // 비어있을 수 있음
     }
 
     // Follow 생성
