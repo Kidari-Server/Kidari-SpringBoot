@@ -30,6 +30,7 @@ public enum ErrorCode {
     COMMIT_NOT_FOUND(404, "커밋 기록이 존재하지 않습니다."),
 
     // Follow
+    FOLLOW_NOT_FOUND(404, "팔로우가 존재하지 않습니다"),
     FOLLOW_BAD_REQUEST(404, "팔로우가 존재하지 않습니다"),
 
     // Item
