@@ -28,7 +28,7 @@ public class AttackService {
             createAttack(attacker, attacked);
             return ApiResponse.success(); // 응답 특별히 x
         } catch (MemberException e) {
-            return ApiResponse.failure(e.getErrorCode(), e.getMessage()); // 눈송이 or 멤버 못 찾음
+            return ApiResponse.failure(e.getErrorCode()); // 눈송이 or 멤버 못 찾음
         }
     }
 
