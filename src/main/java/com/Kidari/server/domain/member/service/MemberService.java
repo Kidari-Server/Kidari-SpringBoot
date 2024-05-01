@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,26 +33,42 @@ public class MemberService {
 
     // 본인 정보 조회
     public ApiResponse<?> getHomeInfo() {
+        // TODO: updateSnowflake 갱신 메소드 호출 추후 추가 필요
         Member member = authUtils.getMember();
         return ApiResponse.success(new MemberHomeResDto(member));
     }
 
     // 유저를 nickname으로 검색, 내가 follow중인 상태인지와 함께 보냄
     public ApiResponse<?> searchMember(String nickname) {
+        Member member = authUtils.getMember();
         List<Member> searchedMembers = memberRepository.findByLoginStartingWith(nickname);
         if (searchedMembers == null)
             return ApiResponse.failure(ErrorCode.MEMBER_NOT_FOUND); // ErrorCode 추가 필요
         List<MemberSearchResDto> resDtos = searchedMembers.stream()
-                .map(member -> new MemberSearchResDto(member, followService.followStatus(member)))
-                .collect(Collectors.toList());
-        return ApiResponse.success();
+                .map(otherMember -> new MemberSearchResDto(otherMember, followService.followStatus(member, otherMember.getUid())))
+                .toList();
+        return ApiResponse.success(resDtos);
     }
 
     // 다른 단일 유저 정보 조회
     public ApiResponse<?> getMemberInfo(String nickname){
-        Member buddy = validationService.valMember(nickname);
-        Boolean followStatus = followService.followStatus(buddy);
-        return ApiResponse.success(new MemberInfoResDto(buddy, followStatus)); // 팔로우 상태와 함께 보냄
+        Member otherMember = validationService.valMember(nickname);
+        Member member = authUtils.getMember();
+        Boolean followStatus = followService.followStatus(member, otherMember.getUid());
+        return ApiResponse.success(new MemberInfoResDto(otherMember, followStatus)); // 팔로우 상태와 함께 보냄
+    }
+
+    // 내 눈사람 키 키우기. 눈송이 사용에 실패한 경우 MemberException
+    public ApiResponse<?> growSnowman() {
+        try {
+            Member member = authUtils.getMember();
+            // member.updateSnowflake(); // TODO: 추후 변경 필요
+            member.useSnowflake();
+            refreshHeight(member, 1L);
+            return ApiResponse.success();
+        } catch (MemberException e) {
+            return ApiResponse.failure(e.getErrorCode());
+        }
     }
 
     // 내 알림을 확인된 상태로 변경
@@ -61,13 +76,6 @@ public class MemberService {
         Member member = authUtils.getMember();
         member.alarmChecked();
         return memberRepository.save(member);
-    }
-
-    // 내 눈사람 키 키우기. 눈송이 사용에 실패한 경우 MemberException
-    public Member growSnowman() throws MemberException {
-        Member member = authUtils.getMember();
-        member.useSnowflake(); // 눈송이 사용에 실패한 경우 MemberException
-        return refreshHeight(member, 1L);
     }
 
     // 단일 멤버의 눈사람 키 갱신 (멤버와 Univ의 totalHeight), diff는 양수(키우기) 또는 음수(공격받음)
@@ -84,6 +92,7 @@ public class MemberService {
     // 공격하기. 눈송이 사용에 실패한 경우 MemberException
     public Member useSnowflakeForAttack() throws MemberException {
         Member member = authUtils.getMember();
+        // member.updateSnowflake(1L); // TODO: 추후 변경 필요
         member.useSnowflake();
         return memberRepository.save(member);
     }
